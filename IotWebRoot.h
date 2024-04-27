@@ -27,7 +27,7 @@ const char IOTWEBROOT_HTML_TABLE_ROW_TEXT[] PROGMEM = "<tr><td align=\"left\">{n
 const char IOTWEBROOT_HTML_TABLE_ROW_SPAN[] PROGMEM = "<tr><td align=\"left\">{n}</td><td align=\"left\"><span id=\"{id}\">{v}</span></td></tr>\n";
 const char IOTWEBROOT_HTML_SCRIPT_INNNER[] PROGMEM = "\n";
 const char IOTWEBROOT_HTML_CONFIG_VER[] PROGMEM = "<div style='font-size: .6em;'>Version '{v}'</div>\n";
-const char IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA[] PROGMEM = "requestData();\nsetInterval(requestData, {millisecond});\nfunction requestData() {\nvar xhttp = new XMLHttpRequest();\nxhttp.onreadystatechange = function() {\nif (this.readyState == 4 && this.status == 200) {\nvar json = JSON.parse(this.responseText);\nupdateData(json);\n}\n};\nxhttp.open('GET', 'data', true);\nxhttp.send();\n}";
+const char IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA[] PROGMEM = "requestData()\nsetInterval(requestData, {millisecond});\nfunction requestData() {\n    var xhttp = new XMLHttpRequest();\n    xhttp.onreadystatechange = function() {\n        if (this.readyState == 4 && this.status == 200) {\n            var json = JSON.parse(this.responseText);\n            updateData(json);\n        }\n    };\n    xhttp.open('GET', 'data', true);\n    xhttp.send();\n}\n";
 
 class HtmlRootFormatProvider {
 public:
@@ -38,7 +38,9 @@ public:
 	}
 
 	virtual String getHtmlHeadEnd() {
-		return FPSTR(IOTWEBROOT_HTML_HEAD_END);
+		String s = FPSTR(IOTWEBROOT_HTML_HEAD_END);
+		s += "<style>\n" + getBodyInner() + "</style>\n";
+		return s;
 	}
 
 	virtual String getHtmlEnd() {
@@ -46,7 +48,7 @@ public:
 	}
 
 	virtual String getHtmlStyle() {
-		return "<style>" + getStyleInner() + "</style>\n";
+		return "<style>\n" + getStyleInner() + "</style>\n";
 	}
 
 	virtual String getHtmlFieldset(String title) {
@@ -83,7 +85,7 @@ public:
 	}
 
 	virtual String getHtmlScript() {
-		return "<script>" + getScriptInner() + "</script>\n";
+		return "<script>\n" + getScriptInner() + "\n</script>\n";
 	}
 
 	virtual String getHtmlVersion(String version) {

@@ -12,9 +12,10 @@
 // -- HTML page fragments
 const char IOTWEBROOT_HTML_HEAD[] PROGMEM = "<!DOCTYPE html>\n<html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>\n<title>{v}</title>\n";
 const char IOTWEBROOT_HTML_HEAD_END[] PROGMEM = "</head>\n<body>\n";
+const char IOTWEBROOT_HTML_BODY_START[] PROGMEM = "<div style='text-align:left;display:inline-block;min-width:260px;'>\n";
+const char IOTWEBROOT_HTML_BODY_END[] PROGMEM = "</div>\n";
 const char IOTWEBROOT_HTML_END[] PROGMEM = "</body>\n</html>\n";
 const char IOTWEBROOT_HTML_STYLE_INNER[] PROGMEM = ".de{background-color:#ffaaaa;} .em{font-size:0.8em;color:#bb0000;padding-bottom:0px;} .c{text-align: center;} div,input,select{padding:5px;font-size:1em;} input{width:95%;} select{width:100%} input[type=checkbox]{width:auto;scale:1.5;margin:10px;} body{text-align: center;font-family:verdana;} button{border:0;border-radius:0.3rem;background-color:#16A1E7;color:#fff;line-height:2.4rem;font-size:1.2rem;width:100%;} fieldset{border-radius:0.3rem;margin: 0px;}\n";
-const char IOTWEBROOT_HTML_BODY_INNER[] PROGMEM = "<div style='text-align:left;display:inline-block;min-width:260px;'>\n";
 const char IOTWEBROOT_HTML_FIELDSET[] PROGMEM = "<fieldset align=left style=\"border: 1px solid\"><legend>{v}</legend>\n";
 const char IOTWEBROOT_HTML_FIELDSET_END[] PROGMEM = "</fieldset>\n";
 const char IOTWEBROOT_HTML_TABLE[] PROGMEM = "<table border=\"0\" align=\"center\">\n";
@@ -39,12 +40,20 @@ public:
 
 	virtual String getHtmlHeadEnd() {
 		String s = FPSTR(IOTWEBROOT_HTML_HEAD_END);
-		s += "<style>\n" + getBodyInner() + "</style>\n";
+		s += "<style>\n" + getStyleInner() + "</style>\n";
 		return s;
 	}
 
 	virtual String getHtmlEnd() {
 		return FPSTR(IOTWEBROOT_HTML_END);
+	}
+
+	virtual String getBodyStart() {
+		return FPSTR(IOTWEBROOT_HTML_BODY_START);
+	}
+
+	virtual String getBodyEnd() {
+		return FPSTR(IOTWEBROOT_HTML_BODY_END);
 	}
 
 	virtual String getHtmlStyle() {
@@ -121,7 +130,7 @@ public:
 protected:
 	virtual String getStyleInner() { return FPSTR(IOTWEBROOT_HTML_STYLE_INNER); }
 	virtual String getScriptInner() { return FPSTR(IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA); }
-	virtual String getBodyInner() { return FPSTR(IOTWEBROOT_HTML_BODY_INNER); }
+	virtual String getBodyInner() { return FPSTR(IOTWEBROOT_HTML_BODY_START); }  // Backward compatibility
 };
 
 #endif

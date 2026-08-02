@@ -9,6 +9,8 @@
 	#include "WProgram.h"
 #endif
 
+#include <ESPAsyncWebServer.h>
+
 // -- HTML page fragments
 const char IOTWEBROOT_HTML_HEAD[] PROGMEM = "<!DOCTYPE html>\n<html lang=\"en\"><head><meta name=\"viewport\" content=\"width=device-width, initial-scale=1, user-scalable=no\"/>\n<title>{v}</title>\n";
 const char IOTWEBROOT_HTML_HEAD_END[] PROGMEM = "</head>\n<body>\n";
@@ -29,6 +31,12 @@ const char IOTWEBROOT_HTML_TABLE_ROW_SPAN[] PROGMEM = "<tr><td align=\"left\">{n
 const char IOTWEBROOT_HTML_SCRIPT_INNNER[] PROGMEM = "\n";
 const char IOTWEBROOT_HTML_CONFIG_VER[] PROGMEM = "<div style='font-size: .6em;'>Version '{v}'</div>\n";
 const char IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA[] PROGMEM = "requestData()\nsetInterval(requestData, {millisecond});\nfunction requestData() {\n    var xhttp = new XMLHttpRequest();\n    xhttp.onreadystatechange = function() {\n        if (this.readyState == 4 && this.status == 200) {\n            var json = JSON.parse(this.responseText);\n            updateData(json);\n        }\n    };\n    xhttp.open('GET', 'data', true);\n    xhttp.send();\n}\n";
+
+// Icon HTML links
+const char IOTWEBROOT_HTML_ICON_LINKS[] PROGMEM =
+"<link rel=\"icon\" type=\"image/png\" sizes=\"96x96\" href=\"/favicon.ico\">\n"
+"<link rel=\"apple-touch-icon\" sizes=\"96x96\" href=\"/apple-touch-icon.png\">\n";
+
 
 class HtmlRootFormatProvider {
 public:
@@ -127,10 +135,56 @@ public:
 		return FPSTR(IOTWEBROOT_HTML_TABLE_ROW_END);
 	}
 
+	/**
+	 * Returns HTML link tags for favicon and apple-touch-icon
+	 */
+	virtual String getIconLinks() {
+		return FPSTR(IOTWEBROOT_HTML_ICON_LINKS);
+	}
+
 protected:
 	virtual String getStyleInner() { return FPSTR(IOTWEBROOT_HTML_STYLE_INNER); }
 	virtual String getScriptInner() { return FPSTR(IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA); }
 	virtual String getBodyInner() { return FPSTR(IOTWEBROOT_HTML_BODY_START); }  // Backward compatibility
+};
+
+/**
+ * Helper class to register icon handlers on AsyncWebServer
+ * Uses the same icon data for both favicon.ico and apple-touch-icon.png
+ */
+class IconHandler {
+public:
+	/**
+	 * Register icon handlers on the web server
+	 * @param server - The AsyncWebServer instance
+	 * @param iconData - Pointer to icon data in PROGMEM
+	 * @param iconSize - Size of the icon data in bytes
+	 */
+	static void registerHandlers(AsyncWebServer* server, const uint8_t* iconData, size_t iconSize) {
+		server->on("/favicon.ico", HTTP_GET, [iconData, iconSize](AsyncWebServerRequest* request) {
+			AsyncWebServerResponse* response = request->beginResponse_P(
+				200,
+				"image/x-icon",
+				iconData,
+				iconSize
+			);
+			response->addHeader("Cache-Control", "public, max-age=604800"); // 7 days
+			response->addHeader("ETag", "\"favicon-v1\"");
+			request->send(response);
+			});
+
+		server->on("/apple-touch-icon.png", HTTP_GET, [iconData, iconSize](AsyncWebServerRequest* request) {
+			AsyncWebServerResponse* response = request->beginResponse_P(
+				200,
+				"image/png",
+				iconData,
+				iconSize
+			);
+			response->addHeader("Cache-Control", "public, max-age=604800"); // 7 days
+			response->addHeader("ETag", "\"apple-icon-v1\"");
+			request->send(response);
+			});
+	}
 };
 
 #endif

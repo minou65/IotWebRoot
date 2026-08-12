@@ -131,8 +131,24 @@ public:
 		return s;
 	}
 
+	// Startet einen Tab-Content-Container
+	String getHtmlTabContentStart(const char* tabId) {
+		return String(F("<div id=\"")) + tabId + F("\" class=\"tabcontent\">");
+	}
+
 	virtual String getHtmlTabContentEnd() {
 		return FPSTR(IOTWEBROOTTAB_HTML_TAB_CONTENT_END);
+	}
+
+	// Gibt nur die Tab-Button-Leiste aus (ohne Content-Container)
+	String getHtmlTabButtons() {
+		String html = "";
+		html += getHtmlTabContainer();
+		for (uint8_t i = 0; i < _tabCount; i++) {
+			html += getHtmlTabButton(_tabs[i].title, _tabs[i].id);
+		}
+		html += getHtmlTabContainerEnd();
+		return html;
 	}
 
 protected:

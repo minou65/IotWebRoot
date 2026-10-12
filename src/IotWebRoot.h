@@ -34,8 +34,9 @@ const char IOTWEBROOT_HTML_SCRIPT_INNER_JS_REQUESTDATA[] PROGMEM = "requestData(
 
 // Icon HTML links
 const char IOTWEBROOT_HTML_ICON_LINKS[] PROGMEM =
-"<link rel=\"icon\" type=\"image/png\" sizes=\"96x96\" href=\"/favicon.ico\">\n"
-"<link rel=\"apple-touch-icon\" sizes=\"96x96\" href=\"/apple-touch-icon.png\">\n";
+"<link rel=\"icon\" type=\"image/png\" sizes=\"32x32\" href=\"/favicon.png\">\n"
+"<link rel=\"icon\" type=\"image/x-icon\" href=\"/favicon.ico\">\n"
+"<link rel=\"apple-touch-icon\" sizes=\"180x180\" href=\"/apple-touch-icon.png\">\n";
 
 
 class HtmlRootFormatProvider {
@@ -160,30 +161,40 @@ public:
 	 * @param iconData - Pointer to icon data in PROGMEM
 	 * @param iconSize - Size of the icon data in bytes
 	 */
-	static void registerHandlers(AsyncWebServer* server, const uint8_t* iconData, size_t iconSize) {
-		server->on("/favicon.ico", HTTP_GET, [iconData, iconSize](AsyncWebServerRequest* request) {
-			AsyncWebServerResponse* response = request->beginResponse_P(
-				200,
-				"image/x-icon",
-				iconData,
-				iconSize
-			);
-			response->addHeader("Cache-Control", "public, max-age=604800"); // 7 days
-			response->addHeader("ETag", "\"favicon-v1\"");
-			request->send(response);
-			});
+	static void registerHandlers(
+		AsyncWebServer* server,
+		const uint8_t* faviconData,
+		size_t faviconSize,
+		const uint8_t* appleTouchData = nullptr,
+		size_t appleTouchSize = 0
+	) {
+		const uint8_t* appleData_ = (appleTouchData != nullptr && appleTouchSize > 0) ? appleTouchData : faviconData;
+		size_t appleSize_ = (appleTouchData != nullptr && appleTouchSize > 0) ? appleTouchSize : faviconSize;
 
-		server->on("/apple-touch-icon.png", HTTP_GET, [iconData, iconSize](AsyncWebServerRequest* request) {
-			AsyncWebServerResponse* response = request->beginResponse_P(
-				200,
-				"image/png",
-				iconData,
-				iconSize
-			);
-			response->addHeader("Cache-Control", "public, max-age=604800"); // 7 days
-			response->addHeader("ETag", "\"apple-icon-v1\"");
+		server->on("/favicon.ico", HTTP_GET, [faviconData, faviconSize](AsyncWebServerRequest* request) {
+			AsyncWebServerResponse* response = request->beginResponse_P(200, "image/x-icon", faviconData, faviconSize);
+			response->addHeader("Cache-Control", "public, max-age=604800");
+			response->addHeader("ETag", "\"favicon-v2\"");
 			request->send(response);
-			});
+		});
+
+		server->on("/favicon.png", HTTP_GET, [faviconData, faviconSize](AsyncWebServerRequest* request) {
+			AsyncWebServerResponse* response = request->beginResponse_P(200, "image/png", faviconData, faviconSize);
+			response->addHeader("Cache-Control", "public, max-age=604800");
+			response->addHeader("ETag", "\"favicon-png-v2\"");
+			request->send(response);
+		});
+
+		auto sendAppleIcon_ = [appleData_, appleSize_](AsyncWebServerRequest* request) {
+			AsyncWebServerResponse* response = request->beginResponse_P(200, "image/png", appleData_, appleSize_);
+			response->addHeader("Cache-Control", "public, max-age=604800");
+			response->addHeader("ETag", "\"apple-icon-v2\"");
+			request->send(response);
+		};
+
+		server->on("/apple-touch-icon.png", HTTP_GET, sendAppleIcon_);
+		server->on("/apple-touch-icon-precomposed.png", HTTP_GET, sendAppleIcon_);
+		server->on("/apple-touch-icon-180x180.png", HTTP_GET, sendAppleIcon_);
 	}
 };
 
